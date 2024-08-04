@@ -105,68 +105,95 @@ bool FieldArchive::compileScripts(int &errorFieldID, int &errorGroupID, int &err
 
 	return true;
 }
-
 bool FieldArchive::searchIterators(QMap<QString, int>::const_iterator &i, QMap<QString, int>::const_iterator &end, int fieldID, Sorting sorting) const
 {
-	if(fieldID >= fields.size())		return false;
+    if (fieldID >= fields.size()) {
+        return false;
+    }
 
-	switch(sorting) {
-	case SortByName:
-		i = fieldsSortByName.constFind(fieldsSortByName.key(fieldID), fieldID);
-		end = fieldsSortByName.constEnd();
-		if(i==end) {
-			i = fieldsSortByName.constBegin();
-		}
-		return true;
-	case SortByDesc:
-		i = fieldsSortByDesc.constFind(fieldsSortByDesc.key(fieldID), fieldID);
-		end = fieldsSortByDesc.constEnd();
-		if(i==end) {
-			i = fieldsSortByDesc.constBegin();
-		}
-		return true;
-	case SortByMapId:
-		i = fieldsSortByMapId.constFind(fieldsSortByMapId.key(fieldID), fieldID);
-		end = fieldsSortByMapId.constEnd();
-		if(i==end) {
-			i = fieldsSortByMapId.constBegin();
-		}
-		return true;
-	}
-	return true;
+    switch (sorting) {
+    case SortByName: {
+        QString key = fieldsSortByName.key(fieldID);
+        i = fieldsSortByName.constFind(key);  // Ensure this returns the correct type
+        end = fieldsSortByName.constEnd();    // Ensure this returns the correct type
+        if (i == end) {
+            i = fieldsSortByName.constBegin(); // Ensure this returns the correct type
+        }
+        return true;
+    }
+
+    case SortByDesc: {
+        QString key = fieldsSortByDesc.key(fieldID);
+        i = fieldsSortByDesc.constFind(key);  // Ensure this returns the correct type
+        end = fieldsSortByDesc.constEnd();    // Ensure this returns the correct type
+        if (i == end) {
+            i = fieldsSortByDesc.constBegin(); // Ensure this returns the correct type
+        }
+        return true;
+    }
+
+    case SortByMapId: {
+        QString key = fieldsSortByMapId.key(fieldID);
+        i = fieldsSortByMapId.constFind(key);  // Ensure this returns the correct type
+        end = fieldsSortByMapId.constEnd();    // Ensure this returns the correct type
+        if (i == end) {
+            i = fieldsSortByMapId.constBegin(); // Ensure this returns the correct type
+        }
+        return true;
+    }
+
+    default:
+        return false;
+    }
 }
 
 bool FieldArchive::searchIteratorsP(QMap<QString, int>::const_iterator &i, QMap<QString, int>::const_iterator &begin, int fieldID, Sorting sorting) const
 {
-	if(fieldID < 0)		return false;
+    if (fieldID < 0) {
+        return false;
+    }
 
-	switch(sorting) {
-	case SortByName:
-		begin = fieldsSortByName.constBegin();
-		i = fieldsSortByName.constFind(fieldsSortByName.key(fieldID), fieldID);
-		if(i==fieldsSortByName.constEnd()) {
-			--i;
-		}
-		return true;
-	case SortByDesc:
-		begin = fieldsSortByDesc.constBegin();
-		i = fieldsSortByDesc.constFind(fieldsSortByDesc.key(fieldID), fieldID);
-		if(i==fieldsSortByDesc.constEnd()) {
-			--i;
-		}
-		break;
-	case SortByMapId:
-		begin = fieldsSortByMapId.constBegin();
-		i = fieldsSortByMapId.constFind(fieldsSortByMapId.key(fieldID), fieldID);
-		if(i==fieldsSortByMapId.constEnd()) {
-			--i;
-		}
-		return true;
-	}
-	return true;
+    switch (sorting) {
+    case SortByName:
+        begin = fieldsSortByName.constBegin();
+        {
+            auto key = fieldsSortByName.key(fieldID);
+            i = fieldsSortByName.constFind(key);
+            if (i == fieldsSortByName.constEnd()) {
+                i = begin;
+            }
+        }
+        return true;
+
+    case SortByDesc:
+        begin = fieldsSortByDesc.constBegin();
+        {
+            auto key = fieldsSortByDesc.key(fieldID);
+            i = fieldsSortByDesc.constFind(key);
+            if (i == fieldsSortByDesc.constEnd()) {
+                i = begin;
+            }
+        }
+        return true;
+
+    case SortByMapId:
+        begin = fieldsSortByMapId.constBegin();
+        {
+            auto key = fieldsSortByMapId.key(fieldID);
+            i = fieldsSortByMapId.constFind(key);
+            if (i == fieldsSortByMapId.constEnd()) {
+                i = begin;
+            }
+        }
+        return true;
+
+    default:
+        return false;
+    }
 }
 
-bool FieldArchive::searchText(const QRegExp &text, int &fieldID, int &textID, int &from, int &size, Sorting sorting) const
+
+bool FieldArchive::searchText(const QRegularExpression &text, int &fieldID, int &textID, int &from, int &size, Sorting sorting) const
 {
 	QMap<QString, int>::const_iterator i, end;
 	if(!searchIterators(i, end, fieldID, sorting))	return false;
@@ -181,12 +208,12 @@ bool FieldArchive::searchText(const QRegExp &text, int &fieldID, int &textID, in
 	return false;
 }
 
-bool FieldArchive::searchTextReverse(const QRegExp &text, int &fieldID, int &textID, int &from, int &size, Sorting sorting) const
+bool FieldArchive::searchTextReverse(const QRegularExpression &text, int &fieldID, int &textID, int &from, int &size, Sorting sorting) const
 {
 	QMap<QString, int>::const_iterator i, begin;
 	if(!searchIteratorsP(i, begin, fieldID, sorting))	return false;
 
-	for( ; i != begin-1 ; --i) {
+	for (i = std::prev(begin); i != end; --i) {
 		Field *field = getField(fieldID = i.value());
 		if(field && field->hasMsdFile() && field->getMsdFile()->searchTextReverse(text, textID, from, size))
 			return true;
@@ -211,7 +238,7 @@ bool FieldArchive::searchScript(JsmFile::SearchType type, quint64 value, int &fi
 	return false;
 }
 
-bool FieldArchive::searchScriptText(const QRegExp &text, int &fieldID, int &groupID, int &methodID, int &opcodeID, Sorting sorting) const
+bool FieldArchive::searchScriptText(const QRegularExpression &text, int &fieldID, int &groupID, int &methodID, int &opcodeID, Sorting sorting) const
 {
 	QMap<QString, int>::const_iterator i, end;
 	if(!searchIterators(i, end, fieldID, sorting))	return false;
@@ -223,7 +250,7 @@ bool FieldArchive::searchScriptText(const QRegExp &text, int &fieldID, int &grou
 			JsmFile *jsm = field->getJsmFile();
 			QList<quint64> textIDs;
 			for (int textID = 0; textID < msd->nbText(); ++textID) {
-				if (text.indexIn(msd->text(textID)) >= 0) {
+				if (text.match(msd->text(textID)).hasMatch()) {
 					textIDs.append(quint64(textID));
 				}
 			}
@@ -242,7 +269,7 @@ bool FieldArchive::searchScriptReverse(JsmFile::SearchType type, quint64 value, 
 	QMap<QString, int>::const_iterator i, begin;
 	if(!searchIteratorsP(i, begin, fieldID, sorting))	return false;
 
-	for( ; i != begin-1 ; --i) {
+	for (i = std::prev(begin); i != end; --i) {
 		Field *field = getField(fieldID = i.value());
 		if(field && field->hasJsmFile() && field->getJsmFile()->searchReverse(type, value, groupID, methodID, opcodeID))
 			return true;
@@ -252,19 +279,19 @@ bool FieldArchive::searchScriptReverse(JsmFile::SearchType type, quint64 value, 
 	return false;
 }
 
-bool FieldArchive::searchScriptTextReverse(const QRegExp &text, int &fieldID, int &groupID, int &methodID, int &opcodeID, Sorting sorting) const
+bool FieldArchive::searchScriptTextReverse(const QRegularExpression &text, int &fieldID, int &groupID, int &methodID, int &opcodeID, Sorting sorting) const
 {
 	QMap<QString, int>::const_iterator i, begin;
 	if(!searchIteratorsP(i, begin, fieldID, sorting))	return false;
 
-	for( ; i != begin-1 ; --i) {
+	for (i = std::prev(begin); i != end; --i) {
 		Field *field = getField(fieldID = i.value());
 		if(field && field->hasMsdFile() && field->hasJsmFile()) {
 			MsdFile *msd = field->getMsdFile();
 			JsmFile *jsm = field->getJsmFile();
 			QList<quint64> textIDs;
 			for (int textID = 0; textID < msd->nbText(); ++textID) {
-				if (text.indexIn(msd->text(textID)) >= 0) {
+				if (text.match(msd->text(textID)).hasMatch()) {
 					textIDs.append(quint64(textID));
 				}
 			}

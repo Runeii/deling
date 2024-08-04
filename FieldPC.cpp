@@ -78,10 +78,10 @@ bool FieldPC::open(const QString &path)
 		return false;
 	}
 
-	QRegExp pathReg("^" + QRegExp::escape("C:\\ff8\\Data\\") + "(\\w+)" + QRegExp::escape("\\FIELD\\mapdata\\") + "(\\w+)" + QRegExp::escape("\\") + "(\\w+)" + QRegExp::escape("\\"), Qt::CaseInsensitive);
+	QRegularExpression pathReg("^" + QRegularExpression::escape("C:\\ff8\\Data\\") + "(\\w+)" + QRegularExpression::escape("\\FIELD\\mapdata\\") + "(\\w+)" + QRegularExpression::escape("\\") + "(\\w+)" + QRegularExpression::escape("\\"), Qt::CaseInsensitive);
 	FsHeader *infInfos = header->getFile("*.inf");
 
-	if(!infInfos || pathReg.indexIn(infInfos->path()) == -1) {
+	if(!infInfos || pathReg.match(infInfos->path()) == -1) {
 		if(infInfos) {
 			qWarning() << "fieldData not opened wrong path" << infInfos->path();
 		} else {
@@ -218,9 +218,9 @@ bool FieldPC::open(FsArchive *archive)
 
 	if(header)	delete header;
 
-	QRegExp pathReg("^" + QRegExp::escape("C:\\ff8\\Data\\") + "(\\w+)" + QRegExp::escape("\\FIELD\\mapdata\\") + "(\\w+)" + QRegExp::escape("\\"), Qt::CaseInsensitive);
+	QRegularExpression pathReg("^" + QRegularExpression::escape("C:\\ff8\\Data\\") + "(\\w+)" + QRegularExpression::escape("\\FIELD\\mapdata\\") + "(\\w+)" + QRegularExpression::escape("\\"), Qt::CaseInsensitive);
 	FsHeader *flInfos = archive->getFile("*"%name()%".fl");
-	if(!flInfos || pathReg.indexIn(flInfos->path()) == -1) {
+	if(!flInfos || pathReg.match(flInfos->path()) == -1) {
 		if(flInfos) {
 			qWarning() << "fieldData not opened" << name() << "wrong path" << flInfos->path();
 		} else {
@@ -417,11 +417,11 @@ bool FieldPC::isMultiLanguage() const
 QStringList FieldPC::languages() const
 {
 	QStringList files = header->toc();
-	QRegExp pathReg("_([a-z]+)\\.[a-z]+$", Qt::CaseInsensitive);
+	QRegularExpression pathReg("_([a-z]+)\\.[a-z]+$", Qt::CaseInsensitive);
 	QStringList langs;
 
 	foreach(const QString &file, files) {
-		if (pathReg.indexIn(file) != -1) {
+		if (pathReg.match(file) != -1) {
 			const QString &lang = pathReg.capturedTexts().at(1);
 
 			if(!langs.contains(lang, Qt::CaseInsensitive)) {

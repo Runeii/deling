@@ -6,11 +6,10 @@ win32 {
     TARGET = Deling
 }
 
-QT += core gui opengl
-greaterThan(QT_MAJOR_VERSION, 4) {
-    QT += widgets
-    CONFIG += c++11
-}
+QT += core gui opengl openglwidgets
+CONFIG += c++11
+QMAKE_CXXFLAGS += -Wno-unused-variable
+
 lessThan(QT_MAJOR_VERSION, 5) {
     # Compatibility layer
     INCLUDEPATH += compat
@@ -233,8 +232,8 @@ RESOURCES += Deling.qrc
 # include lz4
 !win32 {
     macos {
-        INCLUDEPATH += /usr/local/include
-        LIBS += -L/usr/local/lib
+        INCLUDEPATH += /opt/homebrew/include
+        LIBS += -L/opt/homebrew/lib -llz4
     }
 
     LIBS += -llz4

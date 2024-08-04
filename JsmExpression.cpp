@@ -184,8 +184,8 @@ QString JsmExpressionVar::varName() const
 	QString name = Config::value(QString("var%1").arg(_var)).toString();
 	if(!name.isEmpty() && _var < 1024) {
 		return QString("%1_%2").arg(_var).arg(name
-		                                      .replace(QRegExp("\\W"), "_")
-		                                      .replace(QRegExp("_+"), "_"));
+                                          .replace(QRegularExpression(QStringLiteral("\\W")), "_")
+                                          .replace(QRegularExpression(QStringLiteral("_+")), "_"));
 	}
 	return QString::number(_var);
 }
@@ -756,10 +756,10 @@ QString JsmApplicationAssignment::toString(const Field *field) const
 		        *rightOp = binaryExpr->rightOperand();
 		if(opExpr->type() == leftOp->type()
 		        && (opExpr->type() == JsmExpression::Var
-		        && ((JsmExpressionVar *)opExpr)->var() ==
+		        && (((JsmExpressionVar *)opExpr)->var() ==
 		            ((JsmExpressionVar *)leftOp)->var()
 		         || ((JsmExpressionTemp *)opExpr)->temp() ==
-		            ((JsmExpressionTemp *)leftOp)->temp())) {
+		            ((JsmExpressionTemp *)leftOp)->temp()))) {
 			int base = 10;
 			if(binaryExpr->operation() == JsmExpressionBinary::And
 			        || binaryExpr->operation() == JsmExpressionBinary::Or
@@ -778,10 +778,10 @@ QString JsmApplicationAssignment::toString(const Field *field) const
 		          || binaryExpr->operation() == JsmExpressionBinary::Mul)
 		          && opExpr->type() == rightOp->type()
 		          && (opExpr->type() == JsmExpression::Var
-		          && ((JsmExpressionVar *)opExpr)->var() ==
+		          && (((JsmExpressionVar *)opExpr)->var() ==
 		              ((JsmExpressionVar *)rightOp)->var()
 		           || ((JsmExpressionTemp *)opExpr)->temp() ==
-		              ((JsmExpressionTemp *)rightOp)->temp())) {
+		              ((JsmExpressionTemp *)rightOp)->temp()))) {
 			delete opExpr;
 			opExpr = rightOp;
 			ret = QString("%1 %2= %3")

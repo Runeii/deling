@@ -109,8 +109,8 @@ bool FF8Font::isReadOnly() const
 void FF8Font::openTxt(const QString &data)
 {
 	int tableCount = _tdw->tableCount();
-	QStringList lines = data.split(QRegExp("\\s*(\\r\\n|\\r|\\n)\\s*"), QString::SkipEmptyParts);
-	QRegExp nameRegExp("#NAME\\s+(\\S.*)"), letterRegExp("\\s*\"([^\"]*|\\\"*)\"\\s*,?\\s*");
+  QStringList lines = data.split(QRegularExpression("\\s*(\\r\\n|\\r|\\n)\\s*"), Qt::SkipEmptyParts);
+	QRegularExpression nameRegExp("#NAME\\s+(\\S.*)"), letterRegExp("\\s*\"([^\"]*|\\\"*)\"\\s*,?\\s*");
 	// nameRegExp:		#NAME blah blah blah
 	// letterRegExp:	"Foo", "Foo","Foo"
 	QStringList table;
@@ -122,15 +122,17 @@ void FF8Font::openTxt(const QString &data)
 
 	foreach(const QString &line, lines) {
 		if(line.startsWith("#")) {
-			if(nameRegExp.indexIn(line) != -1) {
-				QStringList capturedTexts = nameRegExp.capturedTexts();
+			if (nameRegExp.match(line).hasMatch()) {
+        QRegularExpressionMatch match = nameRegExp.match(line);
+        QStringList capturedTexts = match.capturedTexts();
 				_name = capturedTexts.at(1).trimmed();
 			}
 		}
 		else {
 			int offset=0;
-			while((offset = letterRegExp.indexIn(line, offset)) != -1) {
-				QStringList capturedTexts = letterRegExp.capturedTexts();
+      QRegularExpressionMatch match;
+      while ((match = letterRegExp.match(line, offset)).hasMatch()) {
+        QStringList capturedTexts = match.capturedTexts();
 				table.append(capturedTexts.at(1));
 				offset += capturedTexts.first().size();
 
@@ -142,6 +144,8 @@ void FF8Font::openTxt(const QString &data)
 					}
 					table = QStringList();
 				}
+
+        offset = match.capturedEnd();
 			}
 		}
 	}

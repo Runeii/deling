@@ -22,7 +22,7 @@ MsdHighlighter::MsdHighlighter(QTextDocument *parent) :
 {
 	HighlightingRule rule;
 
-	rule.pattern = QRegExp("\\{x([\\da-fA-F]{2}){1,2}\\}");
+	rule.pattern = QRegularExpression(QStringLiteral(r"\\{x([\\da-fA-F]{2}){1,2}\\}"));
 	rule.color = Qt::darkRed;
 	highlightingRules.append(rule);
 
@@ -34,7 +34,7 @@ MsdHighlighter::MsdHighlighter(QTextDocument *parent) :
 		  << "\\{Timber\\}" << "\\{Trabia\\}" << "\\{Centra\\}" << "\\{Horizon\\}";
 
 	foreach(const QString &name, names) {
-		rule.pattern = QRegExp(name);
+		rule.pattern = QRegularExpression(name);
 		rule.color = Qt::darkGreen;
 		highlightingRules.append(rule);
 	}
@@ -48,7 +48,7 @@ MsdHighlighter::MsdHighlighter(QTextDocument *parent) :
 		  << "\\{Var[0b]?[0-7]\\}" << "^\\{NewPage\\}$" << "\\{jp\\d\\d\\d\\}";
 
 	foreach(const QString &s, syst) {
-		rule.pattern = QRegExp(s, Qt::CaseInsensitive);
+		rule.pattern = QRegularExpression(s, Qt::CaseInsensitive);
 		rule.color = Qt::darkBlue;
 		highlightingRules.append(rule);
 	}
@@ -59,7 +59,7 @@ MsdHighlighter::MsdHighlighter(QTextDocument *parent) :
 			"\\{wi\\}" << "\\{fi\\}" << "\\{EC\\}" << "\\{s \\}" << "\\{ar\\}" << "\\{FE\\}" << "\\{ S\\}" << "\\{ag\\}";
 
 	foreach(const QString &d, doublet) {
-		rule.pattern = QRegExp(d);
+		rule.pattern = QRegularExpression(d);
 		rule.color = Qt::darkBlue;
 		highlightingRules.append(rule);
 	}
@@ -68,12 +68,12 @@ MsdHighlighter::MsdHighlighter(QTextDocument *parent) :
 void MsdHighlighter::highlightBlock(const QString &text)
 {
 	foreach(const HighlightingRule &rule, highlightingRules) {
-		QRegExp expression(rule.pattern);
-		int index = expression.indexIn(text);
+		QRegularExpression expression(rule.pattern);
+		int index = expression.match(text);
 		while(index >= 0) {
 			int length = expression.matchedLength();
 			setFormat(index, length, rule.color);
-			index = expression.indexIn(text, index + length);
+			index = expression.match(text, index + length);
 		}
 	}
 }

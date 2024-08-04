@@ -99,16 +99,16 @@ FieldArchive::Sorting Search::sorting() const
 	}
 }
 
-QRegExp Search::regexp() const
+QRegularExpression Search::regexp() const
 {
 	QCheckBox *checkBox = currentIndex() == Text
 						  ? this->checkBox2
 						  : this->scriptCheckBox2;
 
 	if(checkBox->isChecked()) {
-		return QRegExp(text(), sensitivity());
+		return QRegularExpression(text(), sensitivity());
 	}
-	return QRegExp(QRegExp::escape(text()), sensitivity());
+	return QRegularExpression(QRegularExpression::escape(text()), sensitivity());
 }
 
 QWidget *Search::textPageWidget()

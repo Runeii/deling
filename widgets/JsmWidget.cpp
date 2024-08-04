@@ -21,10 +21,10 @@
 
 JsmWidget::JsmWidget(QWidget *parent)
     : PageWidget(parent), mainModels(nullptr), fieldArchive(nullptr),
-      _regConst(QRegExp("\\b(text|map|item|magic)_(\\d+)\\b")),
-      _regSetLine(QRegExp("setline\\(\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\)")),
-      _regColor(QRegExp("(polycolor|polycolorall|dcoladd|dcolsub|tcoladd|tcolsub|fcoladd|fcolsub|bgshade)\\(\\s*([\\w-]+)\\s*,\\s*([\\w-]+)\\s*,\\s*([\\w-]+)\\s*,?\\s*([\\w-]*)\\s*,?\\s*([\\w-]*)\\s*,?\\s*([\\w-]*)\\s*,?\\s*([\\w-]*)\\)")),
-      _regPlace(QRegExp("setplace\\(\\s*(-?\\d+)\\s*\\)")),
+      _regConst(QRegularExpression(QStringLiteral(r"\\b(text|map|item|magic)_(\\d+)\\b"))),
+      _regSetLine(QRegularExpression(QStringLiteral(r"setline\\(\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*,\\s*(-?\\d+)\\s*\\)"))),
+      _regColor(QRegularExpression(QStringLiteral(r"(polycolor|polycolorall|dcoladd|dcolsub|tcoladd|tcolsub|fcoladd|fcolsub|bgshade)\\(\\s*([\\w-]+)\\s*,\\s*([\\w-]+)\\s*,\\s*([\\w-]+)\\s*,?\\s*([\\w-]*)\\s*,?\\s*([\\w-]*)\\s*,?\\s*([\\w-]*)\\s*,?\\s*([\\w-]*)\\)"))),
+      _regPlace(QRegularExpression(QStringLiteral(r"setplace\\(\\s*(-?\\d+)\\s*\\)"))),
       groupID(-1), methodID(-1)
 {
 }
@@ -326,7 +326,7 @@ void JsmWidget::fillTextEdit()
 
 void JsmWidget::showPreview(const QString &line, QPoint cursorPos)
 {
-	int posConst = _regConst.indexIn(line);
+	int posConst = _regConst.match(line);
 	PreviewWidget *preview = textEdit->previewWidget();
 
 	if(posConst >= 0) {
@@ -376,7 +376,7 @@ void JsmWidget::showPreview(const QString &line, QPoint cursorPos)
 		}
 	}
 
-	int posLine = _regSetLine.indexIn(line);
+	int posLine = _regSetLine.match(line);
 
 	if(posLine >= 0) {
 		QStringList texts = _regSetLine.capturedTexts();
@@ -401,7 +401,7 @@ void JsmWidget::showPreview(const QString &line, QPoint cursorPos)
 		return;
 	}
 
-	int posColor = _regColor.indexIn(line);
+	int posColor = _regColor.match(line);
 
 	if(posColor >= 0) {
 		QStringList texts = _regColor.capturedTexts();
@@ -440,7 +440,7 @@ void JsmWidget::showPreview(const QString &line, QPoint cursorPos)
 		}
 	}
 
-	int posPlace = _regPlace.indexIn(line);
+	int posPlace = _regPlace.match(line);
 
 	if(posPlace >= 0) {
 		int locId = _regPlace.capturedTexts().last().toInt();

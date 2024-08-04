@@ -33,167 +33,180 @@
 #include "widgets/SoundWidget.h"
 #include "widgets/MiscWidget.h"
 #include "widgets/AboutDialog.h"
+#include "QElapsedTimer"
+#include <QScreen>
 
 MainWindow::MainWindow()
     : fieldArchive(nullptr), field(nullptr), currentField(nullptr),
       fieldThread(new FieldThread), file(nullptr), menuGameLang(nullptr),
       fsDialog(nullptr), _varManager(nullptr), firstShow(true)
 {
-	setMinimumSize(700, 600);
-	resize(Config::value("mainWindowSize", QSize(768, 502)).toSize());
-	if(Config::value("mainWindowMaximized", true).toBool())
-		setWindowState(Qt::WindowMaximized);
+    setMinimumSize(700, 600);
+    resize(Config::value("mainWindowSize", QSize(768, 502)).toSize());
+    if (Config::value("mainWindowMaximized", true).toBool())
+        setWindowState(Qt::WindowMaximized);
 
-	statusBar()->show();
-	currentPath = new QLabel();
-	statusBar()->addPermanentWidget(currentPath);
+    statusBar()->show();
+    currentPath = new QLabel();
+    statusBar()->addPermanentWidget(currentPath);
 
-	QMenuBar *menuBar = new QMenuBar();
+    QMenuBar *menuBar = new QMenuBar(this);
 
-	/* Menu 'Fichier' */
-	QMenu *menu = menuBar->addMenu(tr("&Fichier"));
+    /* Menu 'Fichier' */
+    QMenu *menu = menuBar->addMenu(tr("&Fichier"));
 
-	QAction *actionOpen = menu->addAction(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Ouvrir..."), this, SLOT(openFile()), QKeySequence::Open);
-	actionGameLang = menu->addAction(tr("Changer la langue du jeu"));
-	actionGameLang->setVisible(false);
-	actionSave = menu->addAction(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Enregi&strer"), this, SLOT(save()), QKeySequence::Save);
-	actionSaveAs = menu->addAction(tr("Enre&gistrer Sous..."), this, SLOT(saveAs()), QKeySequence::SaveAs);
-	actionExport = menu->addAction(tr("Exporter..."), this, SLOT(exportCurrent()));
-	menuExportAll = menu->addMenu(tr("Exporter tout"));
-	menuExportAll->addAction(tr("Scripts..."), this, SLOT(exportAllScripts()));
-	menuExportAll->addAction(tr("Rencontres aléatoires..."), this, SLOT(exportAllEncounters()));
-	menuExportAll->addAction(tr("Décors..."), this, SLOT(exportAllBackground()));
-	actionImport = menu->addAction(tr("Importer..."), this, SLOT(importCurrent()));
-	actionOpti = menu->addAction(tr("Optimiser l'archive..."), this, SLOT(optimizeArchive()));
-	menu->addSeparator();
-	menu->addAction(tr("Plein écran"), this, SLOT(fullScreen()), Qt::Key_F11);
-	actionClose = menu->addAction(QApplication::style()->standardIcon(QStyle::SP_DialogCloseButton), tr("Fe&rmer"), this, SLOT(closeFiles()));
-	menu->addAction(tr("&Quitter"), this, SLOT(close()))->setMenuRole(QAction::QuitRole);
+    QAction *actionOpen = menu->addAction(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton), tr("&Ouvrir..."), QKeySequence::Open);
+    actionGameLang = menu->addAction(tr("Changer la langue du jeu"));
+    actionGameLang->setVisible(false);
+    actionSave = menu->addAction(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton), tr("Enregi&strer"), QKeySequence::Save, this, &MainWindow::save);
+    actionSaveAs = menu->addAction(tr("Enre&gistrer Sous..."), QKeySequence::SaveAs);
+    actionExport = menu->addAction(tr("Exporter..."), this, &MainWindow::exportCurrent);
+    menuExportAll = menu->addMenu(tr("Exporter tout"));
+    menuExportAll->addAction(tr("Scripts..."), this, &MainWindow::exportAllScripts);
+    menuExportAll->addAction(tr("Rencontres aléatoires..."), this, &MainWindow::exportAllEncounters);
+    menuExportAll->addAction(tr("Décors..."), this, &MainWindow::exportAllBackground);
+    actionImport = menu->addAction(tr("Importer..."), this, &MainWindow::importCurrent);
+    actionOpti = menu->addAction(tr("Optimiser l'archive..."), this, &MainWindow::optimizeArchive);
+    menu->addSeparator();
+    menu->addAction(tr("Plein écran"), Qt::Key_F11, this, &MainWindow::fullScreen);
+    actionClose = menu->addAction(QApplication::style()->standardIcon(QStyle::SP_DialogCloseButton), tr("Fe&rmer"), this, &MainWindow::closeFiles);
+    menu->addAction(tr("&Quitter"), this, &MainWindow::close)->setMenuRole(QAction::QuitRole);
 
-	menu = menuBar->addMenu(tr("&Outils"));
-	actionFind = menu->addAction(QIcon(":/images/find.png"), tr("Rec&hercher..."), this, SLOT(search()), QKeySequence::Find);
-	menu->addAction(tr("&Var manager..."), this, SLOT(varManager()));
-	//menu->addAction(tr("&Rechercher tout..."), this, SLOT(miscSearch()));
-	actionRun = menu->addAction(QIcon(":/images/ff8.png"), tr("&Lancer FF8..."), this, SLOT(runFF8()), Qt::Key_F8);
-	actionRun->setShortcutContext(Qt::ApplicationShortcut);
-	actionRun->setEnabled(Data::ff8Found());
-	addAction(actionRun);
+    menu = menuBar->addMenu(tr("&Outils"));
+    actionFind = menu->addAction(QIcon(":/images/find.png"), tr("Rec&hercher..."), QKeySequence::Find, this, &MainWindow::search);
+    menu->addAction(tr("&Var manager..."), this, &MainWindow::varManager);
+    //menu->addAction(tr("&Rechercher tout..."), this, &MainWindow::miscSearch);
+    actionRun = menu->addAction(QIcon(":/images/ff8.png"), tr("&Lancer FF8..."), Qt::Key_F8, this, &MainWindow::runFF8);
+    actionRun->setShortcutContext(Qt::ApplicationShortcut);
+    actionRun->setEnabled(Data::ff8Found());
+    addAction(actionRun);
 
 #ifndef Q_OS_MAC
-	menuBar->addAction(tr("Op&tions"), this, SLOT(configDialog()))->setMenuRole(QAction::PreferencesRole);
-	menuBar->addAction(tr("&?"), this, SLOT(about()))->setMenuRole(QAction::AboutRole);
+    menuBar->addAction(tr("Op&tions"), this, &MainWindow::configDialog)->setMenuRole(QAction::PreferencesRole);
+    menuBar->addAction(tr("&?"), this, &MainWindow::about)->setMenuRole(QAction::AboutRole);
 #else
-	menu->addAction(tr("Op&tions"), this, SLOT(configDialog()))->setMenuRole(QAction::PreferencesRole);
-	menu->addAction(tr("&?"), this, SLOT(about()))->setMenuRole(QAction::AboutRole);
+    menu->addAction(tr("Op&tions"), this, &MainWindow::configDialog)->setMenuRole(QAction::PreferencesRole);
+    menu->addAction(tr("&?"), this, &MainWindow::about)->setMenuRole(QAction::AboutRole);
 #endif
 
-	setMenuBar(menuBar);
+    setMenuBar(menuBar);
 
-	toolBar = new QToolBar(tr("Barre d'outils &principale"));
-	toolBar->setIconSize(QSize(16,16));
-	toolBar->addAction(actionOpen);
-	toolBar->addAction(actionSave);
-	toolBar->addSeparator();
-	toolBar->addAction(actionFind);
-	toolBar->addAction(actionRun);
-	toolBar->addAction(actionGameLang);
+    toolBar = new QToolBar(tr("Barre d'outils &principale"));
+    toolBar->setIconSize(QSize(16, 16));
+    toolBar->addAction(actionOpen);
+    toolBar->addAction(actionSave);
+    toolBar->addSeparator();
+    toolBar->addAction(actionFind);
+    toolBar->addAction(actionRun);
+    toolBar->addAction(actionGameLang);
 
-	list1 = new QTreeWidget();
-	list1->setHeaderLabels(QStringList() << tr("Fichier") << tr("Description") << tr("#"));
-	list1->setIndentation(0);
-	list1->setSortingEnabled(true);
-	list1->setAutoScroll(false);
-	list1->setColumnWidth(2, 28);
-	list1->sortByColumn(Config::value("list1ColumnSort",2).toInt(), Qt::AscendingOrder);
-	list1->setUniformRowHeights(true);
-	list1->header()->setStretchLastSection(false);
-	list1->header()->setSectionResizeMode(1, QHeaderView::Stretch);
-	list1->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    list1 = new QTreeWidget();
+    list1->setHeaderLabels(QStringList() << tr("Fichier") << tr("Description") << tr("#"));
+    list1->setIndentation(0);
+    list1->setSortingEnabled(true);
+    list1->setAutoScroll(false);
+    list1->setColumnWidth(2, 28);
+    list1->sortByColumn(Config::value("list1ColumnSort", 2).toInt(), Qt::AscendingOrder);
+    list1->setUniformRowHeights(true);
+    list1->header()->setStretchLastSection(false);
+    list1->header()->setSectionResizeMode(1, QHeaderView::Stretch);
+    list1->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 
-	lineSearch = new QLineEdit();
-	lineSearch->setFixedWidth(320);
-	lineSearch->setStatusTip(tr("Recherche rapide"));
+    lineSearch = new QLineEdit();
+    lineSearch->setFixedWidth(320);
+    lineSearch->setStatusTip(tr("Recherche rapide"));
 
-	bgPreview = new BGPreview();
-	bgPreview->setFixedHeight(224);
-	bgPreview->setFixedWidth(320);
+    bgPreview = new BGPreview();
+    bgPreview->setFixedHeight(224);
+    bgPreview->setFixedWidth(320);
 
-	pageWidgets.append(new MsdWidget());
-	pageWidgets.append(new JsmWidget());
-	pageWidgets.append(new CharaWidget());
-	pageWidgets.append(new WalkmeshWidget());
-	pageWidgets.append(new BackgroundWidget());
-	pageWidgets.append(new EncounterWidget());
-	pageWidgets.append(new TdwWidget());
-	pageWidgets.append(new SoundWidget());
-	pageWidgets.append(new MiscWidget());
+    pageWidgets.append(new MsdWidget());
+    pageWidgets.append(new JsmWidget());
+    pageWidgets.append(new CharaWidget());
+    pageWidgets.append(new WalkmeshWidget());
+    pageWidgets.append(new BackgroundWidget());
+    pageWidgets.append(new EncounterWidget());
+    pageWidgets.append(new TdwWidget());
+    pageWidgets.append(new SoundWidget());
+    pageWidgets.append(new MiscWidget());
 
-	tabBar = new QTabBar();
-	foreach(PageWidget *pageWidget, pageWidgets)
-		tabBar->addTab(pageWidget->tabName());
-	tabBar->addTab(tr("Import/Export"));
-	tabBar->setDrawBase(false);
-	QWidget *tabBarWidget = new QWidget();
-	QHBoxLayout *tabBarLayout = new QHBoxLayout(tabBarWidget);
-	tabBarLayout->addStretch();
-	tabBarLayout->addWidget(tabBar);
-	tabBarLayout->setContentsMargins(QMargins());
-	toolBar->addSeparator();
-	toolBar->addWidget(tabBarWidget);
-	Qt::ToolBarArea toolbarArea = Qt::ToolBarArea(Config::value("toolbarArea", Qt::TopToolBarArea).toInt());
-	if(toolbarArea!=Qt::LeftToolBarArea
-			&& toolbarArea!=Qt::RightToolBarArea
-			&& toolbarArea!=Qt::TopToolBarArea
-			&& toolbarArea!=Qt::BottomToolBarArea) {
-		toolbarArea = Qt::TopToolBarArea;
-	}
-	addToolBar(toolbarArea, toolBar);
+    tabBar = new QTabBar();
+    for (PageWidget *pageWidget : pageWidgets)
+        tabBar->addTab(pageWidget->tabName());
+    tabBar->addTab(tr("Import/Export"));
+    tabBar->setDrawBase(false);
+    QWidget *tabBarWidget = new QWidget();
+    QHBoxLayout *tabBarLayout = new QHBoxLayout(tabBarWidget);
+    tabBarLayout->addStretch();
+    tabBarLayout->addWidget(tabBar);
+    tabBarLayout->setContentsMargins(QMargins());
+    toolBar->addSeparator();
+    toolBar->addWidget(tabBarWidget);
+    Qt::ToolBarArea toolbarArea = static_cast<Qt::ToolBarArea>(Config::value("toolbarArea", Qt::TopToolBarArea).toInt());
+    if (toolbarArea != Qt::LeftToolBarArea
+        && toolbarArea != Qt::RightToolBarArea
+        && toolbarArea != Qt::TopToolBarArea
+        && toolbarArea != Qt::BottomToolBarArea) {
+        toolbarArea = Qt::TopToolBarArea;
+    }
+    addToolBar(toolbarArea, toolBar);
 
-	stackedWidget = new QStackedWidget();
-	foreach(PageWidget *pageWidget, pageWidgets)
-		stackedWidget->addWidget(pageWidget);
+    stackedWidget = new QStackedWidget();
+    for (PageWidget *pageWidget : pageWidgets)
+        stackedWidget->addWidget(pageWidget);
 
-	QWidget *tempW = new QWidget();
-	QGridLayout *mainLayout = new QGridLayout(tempW);
-	mainLayout->addWidget(list1, 0, 0);
-	mainLayout->addWidget(lineSearch, 1, 0);
-	mainLayout->addWidget(bgPreview, 2, 0);
-	mainLayout->addWidget(stackedWidget, 0, 1, 3, 1);
-	mainLayout->setColumnStretch(1, 1);
+    QWidget *tempW = new QWidget();
+    QGridLayout *mainLayout = new QGridLayout(tempW);
+    mainLayout->addWidget(list1, 0, 0);
+    mainLayout->addWidget(lineSearch, 1, 0);
+    mainLayout->addWidget(bgPreview, 2, 0);
+    mainLayout->addWidget(stackedWidget, 0, 1, 3, 1);
+    mainLayout->setColumnStretch(1, 1);
 
-	mainStackedWidget = new QStackedWidget(this);
-	mainStackedWidget->addWidget(tempW);
+    mainStackedWidget = new QStackedWidget(this);
+    mainStackedWidget->addWidget(tempW);
 
-	setCentralWidget(mainStackedWidget);
+    setCentralWidget(mainStackedWidget);
 
-	searchAllDialog = new SearchAll(this);
-	searchDialog = new Search(list1, searchAllDialog, this);
+    searchAllDialog = new SearchAll(this);
+    searchDialog = new Search(list1, searchAllDialog, this);
 
-	closeFiles();
-	setCurrentPage(Config::value("currentPage", TextPage).toInt());
+    closeFiles();
+    setCurrentPage(Config::value("currentPage", TextPage).toInt());
 
-	connect(searchDialog, SIGNAL(foundText(int,int,int,int)), SLOT(gotoText(int,int,int,int)));
-	connect(searchDialog, SIGNAL(foundOpcode(int,int,int,int)), SLOT(gotoScript(int,int,int,int)));
-	connect(searchAllDialog, SIGNAL(foundText(int,int,int,int)), SLOT(gotoText(int,int,int,int)));
-	connect(searchAllDialog, SIGNAL(foundOpcode(int,int,int,int)), SLOT(gotoScript(int,int,int,int)));
-	connect(lineSearch, SIGNAL(textEdited(QString)), SLOT(filterMap()));
-	connect(lineSearch, SIGNAL(returnPressed()), SLOT(filterMap()));
-	connect(this, SIGNAL(fieldIdChanged(int)), searchDialog, SLOT(setFieldId(int)));
-	connect(pageWidgets.at(TextPage), SIGNAL(textIdChanged(int)), searchDialog, SLOT(setTextId(int)));
-	connect(pageWidgets.at(TextPage), SIGNAL(fromChanged(int)), searchDialog, SLOT(setFrom(int)));
-	connect(list1, SIGNAL(itemSelectionChanged()), SLOT(fillPage()));
-	connect(tabBar, SIGNAL(currentChanged(int)), SLOT(setCurrentPage(int)));
-	foreach(PageWidget *pageWidget, pageWidgets)
-		connect(pageWidget, SIGNAL(modified()), SLOT(setModified()));
-	connect(bgPreview, SIGNAL(triggered()), SLOT(bgPage()));
-	connect(fieldThread, SIGNAL(background(QImage)), SLOT(fillBackground(QImage)));
+    connect(actionOpen, &QAction::triggered, this, [this]() {
+        QString path = QFileDialog::getOpenFileName(this, tr("Ouvrir un fichier"), "", tr("Fichiers compatibles (*.fs *.iso *.bin);;Archives FS (*.fs);;Fichiers Image Disque (*.iso *.bin)"));
+        if (!path.isEmpty()) {
+            this->openFile(path);
+        }
+    });
+    connect(actionSaveAs, &QAction::triggered, this, [this]() {
+        QString path = fieldArchive != nullptr ? fieldArchive->archivePath() : field->getArchiveHeader()->path();
+        this->saveAs(path);
+    });
+    connect(searchDialog, &Search::foundText, this, &MainWindow::gotoText);
+    connect(searchDialog, &Search::foundOpcode, this, &MainWindow::gotoScript);
+    connect(searchAllDialog, &SearchAll::foundText, this, &MainWindow::gotoText);
+    connect(searchAllDialog, &SearchAll::foundOpcode, this, &MainWindow::gotoScript);
+    connect(lineSearch, &QLineEdit::textEdited, this, &MainWindow::filterMap);
+    connect(lineSearch, &QLineEdit::returnPressed, this, &MainWindow::filterMap);
+    connect(this, &MainWindow::fieldIdChanged, searchDialog, &Search::setFieldId);
+    connect(list1, &QTreeWidget::itemSelectionChanged, this, &MainWindow::fillPage);
+    connect(tabBar, &QTabBar::currentChanged, this, &MainWindow::setCurrentPage);
+    for (PageWidget *pageWidget : pageWidgets)
+      connect(pageWidget, &PageWidget::modified, this, [this]() {
+          this->setModified(false);  // Or true, depending on your logic
+      });
+    connect(bgPreview, &BGPreview::triggered, this, &MainWindow::bgPage);
+    connect(fieldThread, &FieldThread::background, this, &MainWindow::fillBackground);
 }
 
 void MainWindow::showEvent(QShowEvent *)
 {
 	if(firstShow) {
 		if(!windowState().testFlag(Qt::WindowMaximized)) {
-			QPoint screenCenter = QApplication::desktop()->screenGeometry(this).center();
+      QScreen *screen = QGuiApplication::primaryScreen();
+      QPoint screenCenter = screen->geometry().center();
 			move(screenCenter.x() - width()/2, screenCenter.y() - height()/2);
 		}
 		toolBar->setVisible(Config::value("toolbarVisible", true).toBool());
@@ -257,10 +270,12 @@ bool MainWindow::openArchive(const QString &path)
 
 	ProgressWidget progress(tr("Ouverture..."), ProgressWidget::Cancel, this);
 
-	QTime t;t.start();
+  QElapsedTimer t; 
+  t.start();
+
 	int error = fieldArchive->open(path, &progress);
 
-	qDebug() << "openTime" << t.elapsed() << "ms";
+  qDebug() << "openTime" << t.elapsed() << "ms";
 
 	TextPreview::reloadFont();
 
@@ -443,7 +458,7 @@ void MainWindow::fillPage()
 
 	bgPreview->clear();
 
-	QTime t;t.start();
+	QElapsedTimer t;t.start();
 
 	if(this->field != nullptr) {
 		currentField = this->field;
@@ -517,7 +532,24 @@ int MainWindow::closeFiles(bool quit)
 
 	if(actionSave->isEnabled() && fieldArchive!=nullptr)
 	{
-		int reponse = QMessageBox::warning(this, tr("Sauvegarder"), tr("Voulez-vous enregistrer les changements de %1 ?").arg(fieldArchive->archivePath()), tr("Oui"), tr("Non"), tr("Annuler"));
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(tr("Sauvegarder"));
+    msgBox.setText(tr("Voulez-vous enregistrer les changements de %1 ?").arg(fieldArchive->archivePath()));
+    QPushButton *yesButton = msgBox.addButton(tr("Oui"), QMessageBox::YesRole);
+    QPushButton *noButton = msgBox.addButton(tr("Non"), QMessageBox::NoRole);
+    msgBox.addButton(tr("Annuler"), QMessageBox::RejectRole);
+
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.exec();
+
+    int reponse;
+    if (msgBox.clickedButton() == yesButton) {
+        reponse = QMessageBox::YesRole;
+    } else if (msgBox.clickedButton() == noButton) {
+        reponse = QMessageBox::NoRole;
+    } else {
+        reponse = QMessageBox::RejectRole;
+    }
 		if(reponse == 0)				save();
 		if(quit || reponse == 2)	return reponse;
 	}
@@ -844,9 +876,21 @@ void MainWindow::importCurrent()
 
 void MainWindow::optimizeArchive()
 {
-	int reponse = QMessageBox::information(this, tr("À propos de l'optimisation"),
-							 tr("L'optimiseur d'archive va modifier l'ordre des fichiers pour permettre une ouverture bien plus rapide avec Deling.\nIl est vivement conseillé de sauvegarder l'archive (fs, fi et fl) avant de continuer."),
-							 tr("Lancer l'optimisation !"), tr("Annuler"));
+  QMessageBox msgBox(this);
+  msgBox.setWindowTitle(tr("À propos de l'optimisation"));
+  msgBox.setText(tr("L'optimiseur d'archive va modifier l'ordre des fichiers pour permettre une ouverture bien plus rapide avec Deling.\nIl est vivement conseillé de sauvegarder l'archive (fs, fi et fl) avant de continuer."));
+  QPushButton *optimizeButton = msgBox.addButton(tr("Lancer l'optimisation !"), QMessageBox::AcceptRole);
+  QPushButton *cancelButton = msgBox.addButton(tr("Annuler"), QMessageBox::RejectRole);
+
+  msgBox.setIcon(QMessageBox::Information);
+  msgBox.exec();
+
+  int reponse = -1;
+  if (msgBox.clickedButton() == optimizeButton) {
+      reponse = QMessageBox::AcceptRole;
+  } else if (msgBox.clickedButton() == cancelButton) {
+      reponse = QMessageBox::RejectRole;
+  }
 	if(reponse!=0)	return;
 
 	ProgressWidget progress(tr("Optimisation..."), ProgressWidget::Cancel, this);

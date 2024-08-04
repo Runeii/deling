@@ -32,7 +32,7 @@ private:
 	void savePixmap();
 protected:
 	void paintEvent(QPaintEvent *);
-	void enterEvent(QEvent *);
+	void enterEvent(QEnterEvent *event);
 	void leaveEvent(QEvent *);
 	void mousePressEvent(QMouseEvent *);
 };

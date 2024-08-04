@@ -17,8 +17,8 @@
  ****************************************************************************/
 #include "WalkmeshGLWidget.h"
 
-WalkmeshGLWidget::WalkmeshGLWidget(QWidget *parent, const QGLWidget *shareWidget)
-	: QGLWidget(parent, shareWidget),
+WalkmeshGLWidget::WalkmeshGLWidget(QWidget *parent, const QOpenGLWidget *shareWidget)
+	: QOpenGLWidget(parent, shareWidget),
 	  distance(0.0f), xRot(0.0f), yRot(0.0f), zRot(0.0f),
 	  xTrans(0.0f), yTrans(0.0f), transStep(360.0f), lastKeyPressed(-1),
 	  camID(0), _selectedTriangle(-1), _selectedDoor(-1), _selectedGate(-1),
