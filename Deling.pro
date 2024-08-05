@@ -207,9 +207,22 @@ SOURCES += MainWindow.cpp \
     ProgressWidget.cpp \
     JsmExpression.cpp
 
-TRANSLATIONS += deling_en.ts \
-    deling_ja.ts \
-    deling_eu.ts
+# Define the directory for translation files
+TRANSLATIONS_DIR = $$PWD/translations
+
+# Define the translation files you want to include
+TRANSLATIONS = $$TRANSLATIONS_DIR/deling_en.qm \
+               $$TRANSLATIONS_DIR/deling_eu.qm \
+               $$TRANSLATIONS_DIR/deling_ja.qm \
+               $$TRANSLATIONS_DIR/deling_ru.qm
+
+# Specify where to copy the translation files in the .app bundle
+macx {
+    for(qmfile, TRANSLATIONS) {
+      QMAKE_POST_LINK += "cp $$qmfile $$OUT_PWD/deling.app/Contents/MacOS/; "
+    }
+    QMAKE_POST_LINK += $$quote(codesign --force --deep --sign - $$OUT_PWD/deling.app)$$escape_expand(\n\t)
+}
 
 CODECFORTR = UTF-8
 CODECFORSRC = UTF-8

@@ -43,13 +43,17 @@ int main(int argc, char *argv[])
 	if(qtTranslator.load("qt_" + lang, QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
 		app.installTranslator(&qtTranslator);
 
-	QTranslator translator;
-	if(translator.load("deling_" % lang, Config::programResourceDir())){
-		app.installTranslator(&translator);
-		Config::setValue("lang", lang);
-	} else{
-		Config::setValue("lang", "fr");
-	}
+  QTranslator translator;
+  QString translationFile = QString("deling_%1").arg(lang);
+  QString translationPath = QCoreApplication::applicationDirPath();
+
+  if (translator.load(translationFile, translationPath)) {
+      app.installTranslator(&translator);
+      Config::setValue("lang", lang);
+  } else {
+      Config::setValue("lang", "fr");
+  }
+
 
 	if(!FF8Font::listFonts()) {
 		QMessageBox::critical(nullptr, QObject::tr("Chargement des données"), QObject::tr("Les polices de caractères n'ont pas pu être chargées !"));
