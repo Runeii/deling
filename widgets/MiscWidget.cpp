@@ -208,5 +208,7 @@ void MiscWidget::updatePmpView()
 
 		pmpView->setPixmap(QPixmap::fromImage(data()->getPmpFile()->image(deph, palID)));
 	}
-	pmpGroup->setEnabled(pmpView->pixmap() && !pmpView->pixmap()->isNull());
+  
+  QPixmap pixmap = pmpView->pixmap();
+  pmpGroup->setEnabled(!pixmap.isNull());
 }

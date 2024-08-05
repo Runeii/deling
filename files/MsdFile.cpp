@@ -114,44 +114,58 @@ void MsdFile::removeText(int id)
 
 bool MsdFile::searchText(const QRegularExpression &txt, int &textID, int &from, int &size) const
 {
-	if (textID < 0) {
-		textID = 0;
-	}
+    if (textID < 0) {
+        textID = 0;
+    }
 
-	for (; textID < nbText(); ++textID) {
-		from = txt.match(text(textID), from);
-		if (from != -1) {
-			size = txt.matchedLength();
-			return true;
-		}
-		from = 0;
-	}
+    for (; textID < nbText(); ++textID) {
+        QRegularExpressionMatch match = txt.match(text(textID), from);
+        if (match.hasMatch()) {
+            from = match.capturedStart();
+            size = match.capturedLength();
+            return true;
+        }
+        from = 0;  // Reset from for the next textID
+    }
 
-	return false;
+    return false;
 }
 
 bool MsdFile::searchTextReverse(const QRegularExpression &txt, int &textID, int &from, int &size) const
 {
-	if (textID >= nbText()) {
-		textID = nbText() - 1;
-		from = 2147483647;
-	}
+    if (textID >= nbText()) {
+        textID = nbText() - 1;
+        from = std::numeric_limits<int>::max();
+    }
 
-	for (; textID >= 0; --textID) {
-		const FF8Text t = text(textID);
-		int offset = from - t.size();
-		if (offset >= 0) {
-			offset = -1;
-		}
-		from = txt.lastIndexIn(t, offset);
-		if (from != -1) {
-			size = txt.matchedLength();
-			return true;
-		}
-		from = 2147483647;
-	}
+    for (; textID >= 0; --textID) {
+        const FF8Text t = text(textID);
+        int offset = from - t.size();
+        if (offset < 0) {
+            offset = 0;
+        }
 
-	return false;
+        QRegularExpressionMatchIterator iter = txt.globalMatch(t);
+        QRegularExpressionMatch lastMatch;
+
+        while (iter.hasNext()) {
+            QRegularExpressionMatch match = iter.next();
+            if (match.capturedStart() > offset) {
+                break;  // We've gone past the 'from' offset, no need to check further.
+            }
+            lastMatch = match;
+        }
+
+        if (lastMatch.hasMatch()) {
+            from = lastMatch.capturedStart();
+            size = lastMatch.capturedLength();
+            return true;
+        }
+        
+        from = std::numeric_limits<int>::max();  // Reset from for the next textID
+    }
+
+    return false;
 }
 
 bool MsdFile::isJp() const

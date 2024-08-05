@@ -275,7 +275,7 @@ bool MainWindow::openArchive(const QString &path)
 
 	int error = fieldArchive->open(path, &progress);
 
-  qDebug() << "openTime" << t.elapsed() << "ms";
+  qDebug() << "openTime" << t.nsecsElapsed() / 1000 << "ms";
 
 	TextPreview::reloadFont();
 
@@ -495,7 +495,7 @@ void MainWindow::fillPage()
 	else
 		bgPreview->fill(FF8Image::errorPixmap());
 
-//	qDebug() << "BG" << t.elapsed();
+//	qDebug() << "BG" << t.nsecsElapsed() / 1000;
 
 	pageWidgets.at(tabBar->currentIndex())->fill();
 }

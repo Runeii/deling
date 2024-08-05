@@ -923,7 +923,7 @@ bool IsoArchive::extract(IsoFile *isoFile, const QString &destination, quint32 m
 {
 	if(isoFile == NULL)		return false;
 
-//	QTime t;t.start();
+//	QElapsedTimer t;t.start();
 
 	maxSize = maxSize == 0 ? isoFile->size() : qMin(maxSize, isoFile->size());
 	char data[MAX_ISO_READ];
@@ -938,7 +938,7 @@ bool IsoArchive::extract(IsoFile *isoFile, const QString &destination, quint32 m
 		totalR += r;
 	}
 
-//	qDebug() << "time" << t.elapsed();
+//	qDebug() << "time" << t.nsecsElapsed() / 1000;
 
 	return true;
 }
@@ -950,7 +950,7 @@ void IsoArchive::extractAll(const QString &destination)
 
 void IsoArchive::_extractAll(const QString &destination, IsoDirectory *directories, QString currentInternalDir)
 {
-//	QTime t;t.start();
+//	QElapsedTimer t;t.start();
 
 	QDir dir(destination);
 	QString currentPath = dir.absolutePath().append('/');
@@ -972,7 +972,7 @@ void IsoArchive::_extractAll(const QString &destination, IsoDirectory *directori
 		}
 	}
 	
-//	qDebug() << "time" << t.elapsed();
+//	qDebug() << "time" << t.nsecsElapsed() / 1000;
 }
 
 bool IsoArchive::seekToFile(const QString &path)
@@ -1003,7 +1003,7 @@ qint32 IsoArchive::diffCountSectors(const QString &path, quint32 newSize) const
 
 //bool IsoArchive::insert(QString path, QString newISO, QByteArray data)
 //{
-//	QTime t;t.start();
+//	QElapsedTimer t;t.start();
 
 //	IsoFile *isoFile = _rootDirectory->file(path);
 //	if(isoFile == NULL) {
@@ -1012,7 +1012,7 @@ qint32 IsoArchive::diffCountSectors(const QString &path, quint32 newSize) const
 	
 //	seekToFile(isoFile);
 	
-//	qDebug() << "time" << t.elapsed();
+//	qDebug() << "time" << t.nsecsElapsed() / 1000;
 	
 //	return true;
 //}

@@ -6,6 +6,18 @@
     "*.js.liquid": "liquid-javascript",
     "*.css.liquid": "liquid-css",
     "*.scss.liquid": "liquid-scss",
-    "qtwidgets": "cpp"
+    "qtwidgets": "cpp",
+    "__hash_table": "cpp",
+    "__split_buffer": "cpp",
+    "atomic": "cpp",
+    "ios": "cpp",
+    "string": "cpp",
+    "system_error": "cpp",
+    "unordered_map": "cpp",
+    "vector": "cpp",
+    "__node_handle": "cpp",
+    "string_view": "cpp",
+    "variant": "cpp",
+    "__locale": "cpp"
   }
 }

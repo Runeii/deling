@@ -78,21 +78,25 @@ bool FieldPC::open(const QString &path)
 		return false;
 	}
 
-	QRegularExpression pathReg("^" + QRegularExpression::escape("C:\\ff8\\Data\\") + "(\\w+)" + QRegularExpression::escape("\\FIELD\\mapdata\\") + "(\\w+)" + QRegularExpression::escape("\\") + "(\\w+)" + QRegularExpression::escape("\\"), Qt::CaseInsensitive);
-	FsHeader *infInfos = header->getFile("*.inf");
+  QRegularExpression pathReg("^" + QRegularExpression::escape("C:\\ff8\\Data\\") + "(\\w+)" + QRegularExpression::escape("\\FIELD\\mapdata\\") + "(\\w+)" + QRegularExpression::escape("\\") + "(\\w+)" + QRegularExpression::escape("\\"), QRegularExpression::CaseInsensitiveOption);
 
-	if(!infInfos || pathReg.match(infInfos->path()) == -1) {
-		if(infInfos) {
-			qWarning() << "fieldData not opened wrong path" << infInfos->path();
-		} else {
-			qWarning() << "fieldData not opened" << path;
-		}
-		return false;
-	}
+  FsHeader *infInfos = header->getFile("*.inf");
 
-	_lang = pathReg.capturedTexts().at(1);
-	_subDir = pathReg.capturedTexts().at(2);
-	setName(pathReg.capturedTexts().at(3));
+  if (!infInfos) {
+      qWarning() << "fieldData not opened" << path;
+      return false;
+  }
+
+  QRegularExpressionMatch match = pathReg.match(infInfos->path());
+
+  if (!match.hasMatch()) {
+      qWarning() << "fieldData not opened, wrong path" << infInfos->path();
+      return false;
+  }
+
+  _lang = match.captured(1);
+  _subDir = match.captured(2);
+  setName(match.captured(3));
 
 	if(!openOptimized(openExts())) {
 		return false;
@@ -218,18 +222,24 @@ bool FieldPC::open(FsArchive *archive)
 
 	if(header)	delete header;
 
-	QRegularExpression pathReg("^" + QRegularExpression::escape("C:\\ff8\\Data\\") + "(\\w+)" + QRegularExpression::escape("\\FIELD\\mapdata\\") + "(\\w+)" + QRegularExpression::escape("\\"), Qt::CaseInsensitive);
-	FsHeader *flInfos = archive->getFile("*"%name()%".fl");
-	if(!flInfos || pathReg.match(flInfos->path()) == -1) {
-		if(flInfos) {
-			qWarning() << "fieldData not opened" << name() << "wrong path" << flInfos->path();
-		} else {
-			qWarning() << "fieldData not opened" << name() << archive->path();
-		}
-		return false;
-	}
-	_lang = pathReg.capturedTexts().at(1);
-	_subDir = pathReg.capturedTexts().at(2);
+  QRegularExpression pathReg("^" + QRegularExpression::escape("C:\\ff8\\Data\\") + "(\\w+)" + QRegularExpression::escape("\\FIELD\\mapdata\\") + "(\\w+)" + QRegularExpression::escape("\\"), QRegularExpression::CaseInsensitiveOption);
+
+  FsHeader *flInfos = archive->getFile("*" + name() + ".fl");
+
+  if (!flInfos) {
+      qWarning() << "fieldData not opened" << name() << archive->path();
+      return false;
+  }
+
+  QRegularExpressionMatch match = pathReg.match(flInfos->path());
+
+  if (!match.hasMatch()) {
+      qWarning() << "fieldData not opened" << name() << "wrong path" << flInfos->path();
+      return false;
+  }
+
+  _lang = match.captured(1);
+  _subDir = match.captured(2);
 
 	header = new FsArchive(archive->fileData(flInfos->path()), archive->fileData("*"%name()%".fi"));
 	if(!header->isOpen()) {
@@ -416,21 +426,21 @@ bool FieldPC::isMultiLanguage() const
 
 QStringList FieldPC::languages() const
 {
-	QStringList files = header->toc();
-	QRegularExpression pathReg("_([a-z]+)\\.[a-z]+$", Qt::CaseInsensitive);
-	QStringList langs;
+    QStringList files = header->toc();
+    QRegularExpression pathReg("_([a-z]+)\\.[a-z]+$", QRegularExpression::CaseInsensitiveOption);
+    QStringList langs;
 
-	foreach(const QString &file, files) {
-		if (pathReg.match(file) != -1) {
-			const QString &lang = pathReg.capturedTexts().at(1);
+    for (const QString &file : files) {
+        QRegularExpressionMatch match = pathReg.match(file);
+        if (match.hasMatch()) {
+            QString lang = match.captured(1);
+            if (!langs.contains(lang, Qt::CaseInsensitive)) {
+                langs.append(lang.toLower());
+            }
+        }
+    }
 
-			if(!langs.contains(lang, Qt::CaseInsensitive)) {
-				langs.append(lang.toLower());
-			}
-		}
-	}
-
-	return langs;
+    return langs;
 }
 
 QString FieldPC::fileName(FileExt fileExt, bool useGameLang) const

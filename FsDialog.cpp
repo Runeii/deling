@@ -177,14 +177,15 @@ void FsDialog::generatePreview()
 		             fileType == "mim" ? data : fsArchive->fileData(filePathWithoutExt+"mim"));
 		preview->imagePreview(QPixmap::fromImage(backgroundFile.background()), fileName);
 	}
-	else if(fileType == "cnf")
-	{
-		QTextCodec *codec = QTextCodec::codecForName("Shift-JIS");
-		if(codec)
-			preview->textPreview(codec->toUnicode(data));
-		else
-			preview->textPreview(QString(data));
-	}
+  else if(fileType == "cnf")
+    {
+        QStringDecoder decoder("Shift-JIS");
+        if (decoder.isValid()) {
+            preview->textPreview(decoder.decode(data));
+        } else {
+            preview->textPreview(QString::fromUtf8(data));
+        }
+    }
 	else if(fileType == "h" || fileType == "c"
 		 || fileType == "sym" || fileType.isEmpty()
 		 || fileType == "bak" || fileType == "dir"

@@ -31,7 +31,7 @@ class WalkmeshGLWidget : public QOpenGLWidget
 {
 	Q_OBJECT
 public:
-	explicit WalkmeshGLWidget(QWidget *parent=0, const QOpenGLWidget *shareWidget=0);
+	explicit WalkmeshGLWidget(QWidget *parent=0);
 	void clear();
 	void fill(Field *data);
 	void updatePerspective();

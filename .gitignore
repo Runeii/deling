@@ -24,3 +24,5 @@
 *.pro.user
 *.pro.user.*
 *.qm
+
+build

@@ -8,7 +8,9 @@ win32 {
 
 QT += core gui opengl openglwidgets
 CONFIG += c++11
+
 QMAKE_CXXFLAGS += -Wno-unused-variable
+QMAKE_CXXFLAGS += -Wno-deprecated-declarations
 
 lessThan(QT_MAJOR_VERSION, 5) {
     # Compatibility layer

@@ -101,15 +101,23 @@ FieldArchive::Sorting Search::sorting() const
 
 QRegularExpression Search::regexp() const
 {
-	QCheckBox *checkBox = currentIndex() == Text
-						  ? this->checkBox2
-						  : this->scriptCheckBox2;
+    QCheckBox *checkBox = currentIndex() == Text
+                          ? this->checkBox2
+                          : this->scriptCheckBox2;
 
-	if(checkBox->isChecked()) {
-		return QRegularExpression(text(), sensitivity());
-	}
-	return QRegularExpression(QRegularExpression::escape(text()), sensitivity());
+    // Determine the case sensitivity
+    QRegularExpression::PatternOptions options;
+    if (sensitivity() == Qt::CaseInsensitive) {
+        options |= QRegularExpression::CaseInsensitiveOption;
+    }
+
+    if (checkBox->isChecked()) {
+        return QRegularExpression(text(), options);
+    }
+
+    return QRegularExpression(QRegularExpression::escape(text()), options);
 }
+
 
 QWidget *Search::textPageWidget()
 {
@@ -341,7 +349,7 @@ void Search::setSearchOpcode(int opcode)
 void Search::findNext()
 {
 	bool found = false;
-	if(fieldArchive==NULL)	return;
+	if(fieldArchive == nullptr) return;
 
 	buttonNext->setEnabled(false);
 	buttonNext->setDefault(true);
@@ -366,7 +374,7 @@ void Search::findNext()
 void Search::findPrev()
 {
 	bool found = false;
-	if(fieldArchive==NULL)	return;
+	if(fieldArchive == nullptr) return;
 
 	buttonPrev->setEnabled(false);
 	buttonPrev->setDefault(true);

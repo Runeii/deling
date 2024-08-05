@@ -207,7 +207,7 @@ void BackgroundWidget::parameterChanged(int index)
 
 	int parameter = parametersWidget->itemData(index).toInt();
 	QList<quint8> states = data()->getBackgroundFile()->allparams.values(parameter);
-	qSort(states);
+  std::sort(states.begin(), states.end());
 	QListWidgetItem *item;
 
 	statesWidget->clear();

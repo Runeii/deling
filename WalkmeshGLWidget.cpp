@@ -17,27 +17,33 @@
  ****************************************************************************/
 #include "WalkmeshGLWidget.h"
 
-WalkmeshGLWidget::WalkmeshGLWidget(QWidget *parent, const QOpenGLWidget *shareWidget)
-	: QOpenGLWidget(parent, shareWidget),
+WalkmeshGLWidget::WalkmeshGLWidget(QWidget *parent)
+	: QOpenGLWidget(parent),
 	  distance(0.0f), xRot(0.0f), yRot(0.0f), zRot(0.0f),
 	  xTrans(0.0f), yTrans(0.0f), transStep(360.0f), lastKeyPressed(-1),
 	  camID(0), _selectedTriangle(-1), _selectedDoor(-1), _selectedGate(-1),
       _drawLine(false), _lineToDrawPoint1(Vertex_s()), _lineToDrawPoint2(Vertex_s()),
 	  fovy(70.0), data(0), curFrame(0)
 {
-//	setMouseTracking(true);
-//	startTimer(100);
+    // If you need to share an OpenGL context:
+    // QOpenGLContext *context = new QOpenGLContext();
+    // context->setShareContext(shareContext);
+    // context->create();
+    // setContext(context);
+
+    // setMouseTracking(true);
+    // startTimer(100);
 }
 
 void WalkmeshGLWidget::timerEvent(QTimerEvent *)
 {
-	updateGL();
+	update();
 }
 
 void WalkmeshGLWidget::clear()
 {
 	data = 0;
-	updateGL();
+	update();
 }
 
 void WalkmeshGLWidget::fill(Field *data)
@@ -62,7 +68,7 @@ void WalkmeshGLWidget::updatePerspective()
 {
 	computeFov();
 	resizeGL(width(), height());
-	updateGL();
+	update();
 }
 
 void WalkmeshGLWidget::initializeGL()
@@ -314,17 +320,17 @@ void WalkmeshGLWidget::drawIdLine(int triangleID, const Vertex_sr &vertex1, cons
 void WalkmeshGLWidget::wheelEvent(QWheelEvent *event)
 {
 	setFocus();
-	distance += event->delta() / 4096.0;
-	updateGL();
+	distance += event->angleDelta().y() / 4096.0;
+	update();
 }
 
 void WalkmeshGLWidget::mousePressEvent(QMouseEvent *event)
 {
 	setFocus();
-	if(event->button() == Qt::MidButton)
+	if(event->button() == Qt::MiddleButton)
 	{
 		distance = -35;
-		updateGL();
+		update();
 	}
 	else if(event->button() == Qt::LeftButton)
 	{
@@ -338,7 +344,7 @@ void WalkmeshGLWidget::mouseMoveEvent(QMouseEvent *event)
 		xTrans += (event->pos().x() - moveStart.x()) / 4096.0;
 		yTrans -= (event->pos().y() - moveStart.y()) / 4096.0;
 		moveStart = event->pos();
-		updateGL();
+		update();
 	}
 }
 
@@ -361,19 +367,19 @@ void WalkmeshGLWidget::keyPressEvent(QKeyEvent *event)
 	{
 	case Qt::Key_Left:
 		xTrans += 1.0f/transStep;
-		updateGL();
+		update();
 		break;
 	case Qt::Key_Right:
 		xTrans -= 1.0f/transStep;
-		updateGL();
+		update();
 		break;
 	case Qt::Key_Down:
 		yTrans += 1.0f/transStep;
-		updateGL();
+		update();
 		break;
 	case Qt::Key_Up:
 		yTrans -= 1.0f/transStep;
-		updateGL();
+		update();
 		break;
 	default:
 		QWidget::keyPressEvent(event);
@@ -406,7 +412,7 @@ void WalkmeshGLWidget::setXRotation(int angle)
 	qNormalizeAngle(angle);
 	if (angle != xRot) {
 		xRot = angle;
-		updateGL();
+		update();
 	}
 }
 
@@ -415,7 +421,7 @@ void WalkmeshGLWidget::setYRotation(int angle)
 	qNormalizeAngle(angle);
 	if (angle != yRot) {
 		yRot = angle;
-		updateGL();
+		update();
 	}
 }
 
@@ -424,7 +430,7 @@ void WalkmeshGLWidget::setZRotation(int angle)
 	qNormalizeAngle(angle);
 	if (angle != zRot) {
 		zRot = angle;
-		updateGL();
+		update();
 	}
 }
 
@@ -438,7 +444,7 @@ void WalkmeshGLWidget::resetCamera()
 	distance = 0;
 	zRot = yRot = xRot = 0;
 	xTrans = yTrans = 0;
-	updateGL();
+	update();
 }
 
 void WalkmeshGLWidget::setCurrentFieldCamera(int camID)
@@ -450,19 +456,19 @@ void WalkmeshGLWidget::setCurrentFieldCamera(int camID)
 void WalkmeshGLWidget::setSelectedTriangle(int triangle)
 {
 	_selectedTriangle = triangle;
-	updateGL();
+	update();
 }
 
 void WalkmeshGLWidget::setSelectedDoor(int door)
 {
 	_selectedDoor = door;
-	updateGL();
+	update();
 }
 
 void WalkmeshGLWidget::setSelectedGate(int gate)
 {
 	_selectedGate = gate;
-	updateGL();
+	update();
 }
 
 void WalkmeshGLWidget::setLineToDraw(const Vertex_s vertex[2])
@@ -470,11 +476,11 @@ void WalkmeshGLWidget::setLineToDraw(const Vertex_s vertex[2])
 	_lineToDrawPoint1 = vertex[0];
 	_lineToDrawPoint2 = vertex[1];
 	_drawLine = true;
-	updateGL();
+	update();
 }
 
 void WalkmeshGLWidget::clearLineToDraw()
 {
 	_drawLine = false;
-	updateGL();
+	update();
 }

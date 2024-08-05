@@ -55,7 +55,7 @@ void MiscSearch::fillList()
 		fields.insert(mapList.indexOf(f->name()), QString::number(mapList.indexOf(f->name())).append(" => ['name' => '").append(f->name()).append("', 'desc' => '").append(Data::location(mapId)).append("'],"));
 	}
 
-	QMapIterator<int, QString> it(fields);
+	QMultiMapIterator<int, QString> it(fields);
 
 	while (it.hasNext()) {
 		it.next();
@@ -95,7 +95,7 @@ void MiscSearch::fillList()
 //		}
 //	}
 //	QString text;
-//	QMapIterator<int, QStringList> it(spells);
+//	QMapIterator<int, QStringList> it(spells.toStdMap());
 //	int h=0, lastKey=1;
 //	while(it.hasNext()) {
 //		it.next();

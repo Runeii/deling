@@ -78,8 +78,8 @@ protected:
 	QMultiMap<QString, int> fieldsSortByMapId;
 	bool readOnly;
 private:
-	bool searchIterators(QMap<QString, int>::const_iterator &i, QMap<QString, int>::const_iterator &end, int fieldID, Sorting sorting) const;
-	bool searchIteratorsP(QMap<QString, int>::const_iterator &i, QMap<QString, int>::const_iterator &begin, int fieldID, Sorting sorting) const;
+	bool searchIterators(QMultiMap<QString, int>::const_iterator &i, QMultiMap<QString, int>::const_iterator &end, int fieldID, Sorting sorting) const;
+	bool searchIteratorsP(QMultiMap<QString, int>::const_iterator &i, QMultiMap<QString, int>::const_iterator &begin, int fieldID, Sorting sorting) const;
 };
 
 #endif // FSARCHIVE_H

@@ -22,7 +22,7 @@ MsdHighlighter::MsdHighlighter(QTextDocument *parent) :
 {
 	HighlightingRule rule;
 
-	rule.pattern = QRegularExpression(QStringLiteral(r"\\{x([\\da-fA-F]{2}){1,2}\\}"));
+	rule.pattern = QRegularExpression("\1");
 	rule.color = Qt::darkRed;
 	highlightingRules.append(rule);
 
@@ -46,12 +46,12 @@ MsdHighlighter::MsdHighlighter(QTextDocument *parent) :
 		  << "\\{RedBlink\\}" << "\\{GreenBlink\\}" << "\\{BlueBlink\\}"
 		  << "\\{PurpleBlink\\}" << "\\{WhiteBlink\\}" << "\\{Wait\\d\\d\\d\\}"
 		  << "\\{Var[0b]?[0-7]\\}" << "^\\{NewPage\\}$" << "\\{jp\\d\\d\\d\\}";
-
-	foreach(const QString &s, syst) {
-		rule.pattern = QRegularExpression(s, Qt::CaseInsensitive);
-		rule.color = Qt::darkBlue;
-		highlightingRules.append(rule);
-	}
+  
+  for (const QString &s : syst) {
+      rule.pattern = QRegularExpression(s, QRegularExpression::CaseInsensitiveOption);
+      rule.color = Qt::darkBlue;
+      highlightingRules.append(rule);
+  }
 
 	QStringList doublet;
 	doublet << "\\{in\\}" << "\\{e \\}" << "\\{ne\\}" << "\\{to\\}" << "\\{re\\}" << "\\{HP\\}" << "\\{l \\}" << "\\{ll\\}" <<
@@ -67,13 +67,16 @@ MsdHighlighter::MsdHighlighter(QTextDocument *parent) :
 
 void MsdHighlighter::highlightBlock(const QString &text)
 {
-	foreach(const HighlightingRule &rule, highlightingRules) {
-		QRegularExpression expression(rule.pattern);
-		int index = expression.match(text);
-		while(index >= 0) {
-			int length = expression.matchedLength();
-			setFormat(index, length, rule.color);
-			index = expression.match(text, index + length);
-		}
-	}
+    for (const HighlightingRule &rule : highlightingRules) {
+        QRegularExpression expression(rule.pattern);
+        QRegularExpressionMatch match = expression.match(text);
+        int index = match.capturedStart();
+        
+        while (match.hasMatch()) {
+            int length = match.capturedLength();
+            setFormat(index, length, rule.color);
+            match = expression.match(text, index + length);
+            index = match.capturedStart();
+        }
+    }
 }

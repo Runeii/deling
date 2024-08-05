@@ -158,25 +158,27 @@ bool FieldArchivePC::openModels()
 	}
 
 	QByteArray fs;
-	QRegularExpression fileName("d(\\d\\d\\d)\\.mch$", Qt::CaseInsensitive);
+  QRegularExpression fileName("d(\\d\\d\\d)\\.mch$", QRegularExpression::CaseInsensitiveOption);
+
 	QStringList toc = mainModels.toc();
 	if(!toc.isEmpty()) {
 		fs = archive->fileData("*field\\model\\main_chr.fs");
 	}
 
-	foreach(const QString &entry, toc) {
-		if(fileName.match(entry, -8) != -1) {
-			bool ok;
-			QStringList capturedTexts = fileName.capturedTexts();
-			int id = capturedTexts.at(1).toInt(&ok);
-			if(ok) {
-				MchFile mch;
-				if(mch.open(mainModels.fileData(entry, fs), capturedTexts.first().left(4)) && mch.hasModel()) {
-					models.insert(id, new CharaModel(*mch.model()));
-				}
-			}
-		}
-	}
+  for (const QString &entry : toc) {
+      QRegularExpressionMatch match = fileName.match(entry, entry.length() - 8); // Adjust this as per your actual logic
+      if (match.hasMatch()) {
+          bool ok;
+          QStringList capturedTexts = match.capturedTexts();
+          int id = capturedTexts.at(1).toInt(&ok);
+          if (ok) {
+              MchFile mch;
+              if (mch.open(mainModels.fileData(entry, fs), capturedTexts.first().left(4)) && mch.hasModel()) {
+                  models.insert(id, new CharaModel(*mch.model()));
+              }
+          }
+      }
+  }
 
 	return !models.isEmpty();
 }
@@ -201,7 +203,7 @@ bool FieldArchivePC::save(ArchiveObserver *progress, QString save_path)
 {
 	if(!archive)	return false;
 
-	QTime t;t.start();
+	QElapsedTimer t;t.start();
 	QStringList toc = archive->toc();
 //	QByteArray fs_data;
 	int pos, archiveSize;
@@ -384,7 +386,7 @@ bool FieldArchivePC::save(ArchiveObserver *progress, QString save_path)
 
 	archive->rebuildInfos();
 
-	qDebug() << "save time" << t.elapsed();
+	qDebug() << "save time" << t.nsecsElapsed() / 1000;
 
 	return true;
 }
@@ -393,7 +395,7 @@ bool FieldArchivePC::optimiseArchive(ArchiveObserver *progress)
 {
 	if(!archive)	return false;
 
-	QTime t;t.start();
+	QElapsedTimer t;t.start();
 	QStringList toc = archive->toc();
 	QByteArray fs_data;
 	int pos;
@@ -517,7 +519,7 @@ bool FieldArchivePC::optimiseArchive(ArchiveObserver *progress)
 
 	archive->rebuildInfos();
 
-	qDebug() << "save time" << t.elapsed();
+	qDebug() << "save time" << t.nsecsElapsed() / 1000;
 
 	return true;
 }
@@ -525,7 +527,8 @@ bool FieldArchivePC::optimiseArchive(ArchiveObserver *progress)
 QStringList FieldArchivePC::languages() const
 {
 	QStringList files = archive->toc();
-	QRegularExpression pathReg("_([a-z]+)\\.[a-z]+$", Qt::CaseInsensitive);
+  QRegularExpression pathReg("_([a-z]+)\\.[a-z]+$", QRegularExpression::CaseInsensitiveOption);
+
 	QStringList langs;
 	int stop = 10;
 

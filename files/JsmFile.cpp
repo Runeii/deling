@@ -50,7 +50,7 @@ bool JsmFile::open(const QString &path)
 		return false;
 	}
 	QString symPath = path;
-	symPath.replace(QRegularExpression(QStringLiteral(r"\\..+$")), ".sym");
+	symPath.replace(QRegularExpression("\1"), ".sym");
 	if(QFile::exists(symPath)) {
 		QFile sym_file(symPath);
 		if(!sym_file.open(QIODevice::ReadOnly)) {
@@ -180,7 +180,7 @@ bool JsmFile::openSym(const QByteArray &sym_data)
 	QStringList sym_strings;
 	int nbScripts, nbGroup, nbLines, nbEntities = scripts.nbEntitiesForSym();
 
-	sym_strings = QString(sym_data).split('\n', QString::SkipEmptyParts);
+	sym_strings = QString(sym_data).split('\n', Qt::SkipEmptyParts);
 	nbLines = sym_strings.size();
 
 	if(nbLines<=0) return false;
@@ -201,7 +201,7 @@ bool JsmFile::openSym(const QByteArray &sym_data)
 
 			line = sym_strings.at(nbEntities+i).simplified();
 			if((index = line.indexOf("::")) == -1) {
-				if(validName.match(line)) {
+				if(validName.match(line).hasMatch()) {
 					scripts.setGroupName(groupID+1, line);
 				} else {
 					qWarning() << "JsmFile::openSym erreur nom groupe invalide" << line;
@@ -210,7 +210,7 @@ bool JsmFile::openSym(const QByteArray &sym_data)
 				++groupID;
 				methodID = 1;
 			}
-			else if(validName.match(line.mid(index+2))) {
+			else if(validName.match(line.mid(index+2)).hasMatch()) {
 				if(groupID == -1) {
 					qWarning() << "JsmFile::openSym constructeur indéfini" << line;
 					break;
@@ -771,7 +771,7 @@ int JsmFile::fromString(int groupID, int methodID, const QString &text, QString 
 
 	int l=1;
 	foreach(const QString &line, lines) {
-		QStringList rows = line.split(spaces, QString::SkipEmptyParts);
+		QStringList rows = line.split(spaces, Qt::SkipEmptyParts);
 		int rowsSize = rows.size();
 		if(rowsSize < 1) {
 			++l;
@@ -912,7 +912,7 @@ int JsmFile::fromString(int groupID, int methodID, const QString &text, QString 
 		++l;
 	}
 
-	QMapIterator<int, int> it(gotosPos);
+	QMultiMapIterator<int, int> it(gotosPos);
 	while(it.hasNext()) {
 		it.next();
 		lbl = it.key();

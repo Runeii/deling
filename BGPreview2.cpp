@@ -39,7 +39,7 @@ void BGPreview2::paintEvent(QPaintEvent *e)
 	}
 }
 
-void BGPreview2::enterEvent(QEvent *)
+void BGPreview2::enterEvent(QEnterEvent *)
 {
 	showSave = true;
 	update(0, 0, 32, 32);
@@ -62,8 +62,8 @@ void BGPreview2::mousePressEvent(QMouseEvent *event)
 
 void BGPreview2::savePixmap()
 {
-	QString path = QFileDialog::getSaveFileName(this, tr("Enregistrer l'image"), name + ".png", tr("Image PNG (*.png);;Image JPG (*.jpg);;Image BMP (*.bmp);;Portable Pixmap (*.ppm)"));
-	if(path.isEmpty())	return;
+    QString path = QFileDialog::getSaveFileName(this, tr("Save Image"), name + ".png", tr("PNG Image (*.png);;JPG Image (*.jpg);;BMP Image (*.bmp);;Portable Pixmap (*.ppm)"));
+    if (path.isEmpty()) return;
 
-	pixmap()->save(path);
+    pixmap().save(path);
 }

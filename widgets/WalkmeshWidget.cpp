@@ -701,7 +701,7 @@ void WalkmeshWidget::editCaVector(int id, const Vertex_s &values)
 		if(oldV.x != values.x || oldV.y != values.y || oldV.z != values.z) {
 			cam.camera_axis[id] = values;
 			data()->getCaFile()->setCamera(camID, cam);
-			walkmeshGL->updateGL();
+			walkmeshGL->update();
 			emit modified();
 		}
 	}
@@ -724,7 +724,7 @@ void WalkmeshWidget::editCaPos(int id, double value)
 		if(cam.camera_position[id] != (qint32)value) {
 			cam.camera_position[id] = value;
 			data()->getCaFile()->setCamera(camID, cam);
-			walkmeshGL->updateGL();
+			walkmeshGL->update();
 			emit modified();
 		}
 	}
@@ -825,7 +825,7 @@ void WalkmeshWidget::editIdTriangle(int id, const Vertex_s &values)
 			if(oldV.x != values.x || oldV.y != values.y || oldV.z != values.z) {
 				oldV = IdFile::fromVertex_s(values);
 				data()->getIdFile()->setTriangle(triangleID, old);
-				walkmeshGL->updateGL();
+				walkmeshGL->update();
 				emit modified();
 			}
 		}
@@ -851,7 +851,7 @@ void WalkmeshWidget::editIdAccess(int id, int value)
 			if(oldV != value) {
 				old.a[id] = value;
 				data()->getIdFile()->setAccess(triangleID, old);
-				walkmeshGL->updateGL();
+				walkmeshGL->update();
 				emit modified();
 			}
 		}
@@ -921,7 +921,7 @@ void WalkmeshWidget::editExitPoint(int id, const Vertex_s &values)
 		if(oldVertex.x != values.x || oldVertex.y != values.y || oldVertex.z != values.z) {
 			old.exitLine[id] = values;
 			data()->getInfFile()->setGateway(gateId, old);
-			walkmeshGL->updateGL();
+			walkmeshGL->update();
 			emit modified();
 		}
 	}
@@ -958,7 +958,7 @@ void WalkmeshWidget::editDoorPoint(int id, const Vertex_s &values)
 		if(oldVertex.x != values.x || oldVertex.y != values.y || oldVertex.z != values.z) {
 			old.trigger_line[id] = values;
 			data()->getInfFile()->setTrigger(gateId, old);
-			walkmeshGL->updateGL();
+			walkmeshGL->update();
 			emit modified();
 		}
 	}
@@ -1042,7 +1042,7 @@ void WalkmeshWidget::editDoorId(int v)
 				doorList->currentItem()->setText(tr("Inutilisé"));
 			}
 
-			walkmeshGL->updateGL();
+			walkmeshGL->update();
 			emit modified();
 		}
 	}
